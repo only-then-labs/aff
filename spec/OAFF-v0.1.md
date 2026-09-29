@@ -134,9 +134,12 @@ A parser MUST report at least these separate classes of result:
   unknown receipt evidence reference, wrong receipt subject, or invalid link.
 - `indeterminate_evidence`: the package is structurally valid but named source
   bytes or an external authority cannot be checked.
+- `evidence_mismatch`: the caller supplied source bytes and their SHA-256
+  digest differs from the descriptor; the supplied evidence check fails.
 
-The first three are invalid package outcomes. `indeterminate_evidence` is a
-valid package with an explicit verification limit. A receiver MAY add more
+The first three are invalid package outcomes. `evidence_mismatch` is a failed
+source check. `indeterminate_evidence` is a valid package with an explicit
+verification limit. A receiver MAY add more
 specific diagnostics. It MUST NOT silently turn any of them into an
 admission decision.
 
