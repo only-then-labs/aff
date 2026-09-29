@@ -65,6 +65,17 @@ class InboxTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "workspace key"):
                 inbox.ingest("", candidate)
 
+    def test_oversized_package_is_rejected_without_storing_its_bytes(self):
+        from oaff.verify import MAX_PACKAGE_BYTES
+        oversized = b"x" * (MAX_PACKAGE_BYTES + 1)
+        with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
+            result = inbox.ingest("workspace-a", oversized)
+            self.assertEqual(result["state"], "quarantined")
+            length = inbox.connection.execute(
+                "SELECT length(package_bytes) FROM quarantine"
+            ).fetchone()[0]
+            self.assertEqual(length, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

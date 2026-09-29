@@ -14,7 +14,7 @@ from typing import Mapping
 
 import rfc8785
 
-from .verify import verify_bytes
+from .verify import MAX_PACKAGE_BYTES, verify_bytes
 
 
 def _sha(data: bytes) -> str:
@@ -77,7 +77,8 @@ class CandidateInbox:
         report = verify_bytes(data, evidence)
         raw_digest = _sha(data)
         if report["status"] == "invalid":
-            return self._quarantine(workspace, data, raw_digest,
+            retained = data if len(data) <= MAX_PACKAGE_BYTES else b""
+            return self._quarantine(workspace, retained, raw_digest,
                                     report["diagnostics"][0]["code"], report)
 
         document = json.loads(data)
