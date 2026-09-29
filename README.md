@@ -14,9 +14,10 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Positive and negative fixtures](fixtures/README.md)
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
 
-O1 is the format-contract milestone. The independent verifier, Proofpress
-export/import, lifecycle sync, and conformance release are separate planned
-milestones in the [strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e).
+The format contract and independent verifier have merged. Proofpress export is
+in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210); hosted
+import, lifecycle sync, and conformance release remain in the
+[strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e).
 
 The JSON Schema validates shape. The fixture check also validates package
 digests and the few cross-field invariants stated in the spec. It is **not**
@@ -47,5 +48,26 @@ The command exits **0** for a valid package, including
 for CLI usage errors. JSON output keeps package integrity, evidence-byte
 checks, receipt counts, and local authority separate. Passing the verifier
 never means the Finding is true, authenticated, or approved for reuse.
+
+## Candidate inbox (O4 foundation)
+
+`CandidateInbox` retains verified foreign packages in a local SQLite store.
+It partitions them by a workspace key supplied by the **already authenticated
+caller**, accepts later receipt snapshots for the same immutable Finding,
+deduplicates repeats, and quarantines invalid or conflicting bytes. Every
+result has `local_authority: none`; the inbox has no adoption operation.
+
+```python
+from oaff import CandidateInbox
+
+with CandidateInbox("oaff-inbox.db") as inbox:
+    result = inbox.ingest("authenticated-workspace-id", open("finding.oaff.json", "rb").read())
+    print(result["state"], result["verification"]["status"])
+```
+
+This is a reference import core, not a hosted authentication or governance
+integration. The caller must enforce workspace access before invoking it and
+keep the database in its own protected storage. Proofpress hosted adoption
+requires its separate workspace-ownership and review gates.
 
 The format and this repository are licensed under [Apache-2.0](LICENSE).
