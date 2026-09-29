@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check O1's example contract; O2 will provide the standalone verifier."""
+"""Check the normative example corpus independently of the packaged verifier."""
 
 from __future__ import annotations
 
