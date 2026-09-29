@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/only-then-labs/oaff/blob/main/schema/oaff-0.1.schema.json",
+  "title": "Open Agent Findings Format v0.1",
+  "description": "Schema validation does not verify digests, evidence, issuer identity, or local authority.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["oaff_version", "finding", "receipts", "integrity"],
+  "properties": {
+    "oaff_version": {"const": "0.1.0"},
+    "finding": {"$ref": "#/$defs/finding"},
+    "receipts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/receipt"}
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest"],
+      "properties": {
+        "algorithm": {"const": "sha-256-jcs"},
+        "digest": {"$ref": "#/$defs/sha256hex"}
+      }
+    },
+    "extensions": {"$ref": "#/$defs/extensions"}
+  },
+  "$defs": {
+    "uri": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 2048,
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:[^\\s]+$"
+    },
+    "utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "sha256hex": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "shortText": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 512
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/uri"}
+    },
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "kind": {"enum": ["agent", "human", "service", "system"]}
+      }
+    },
+    "applicability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["description", "conditions"],
+      "properties": {
+        "description": {"$ref": "#/$defs/text"},
+        "conditions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/shortText"}
+        },
+        "exclusions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/shortText"}
+        }
+      }
+    },
+    "digest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "value"],
+      "properties": {
+        "algorithm": {"const": "sha-256"},
+        "value": {"$ref": "#/$defs/sha256hex"}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "source_uri", "content_digest", "availability"],
+      "properties": {
+        "id": {"$ref": "#/$defs/shortText"},
+        "source_uri": {"$ref": "#/$defs/uri"},
+        "content_digest": {"$ref": "#/$defs/digest"},
+        "availability": {"enum": ["public", "restricted", "unavailable"]},
+        "locator": {"$ref": "#/$defs/shortText"},
+        "excerpt": {"$ref": "#/$defs/text"}
+      }
+    },
+    "link": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relation", "target_id", "target_revision"],
+      "properties": {
+        "relation": {"enum": ["revision_of", "supersedes", "depends_on"]},
+        "target_id": {"$ref": "#/$defs/uri"},
+        "target_revision": {"$ref": "#/$defs/uri"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "revision", "statement", "type", "applicability",
+        "producer", "created_at", "evidence"
+      ],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "revision": {"$ref": "#/$defs/uri"},
+        "statement": {"$ref": "#/$defs/text"},
+        "type": {"enum": ["observation", "procedure", "constraint"]},
+        "applicability": {"$ref": "#/$defs/applicability"},
+        "producer": {"$ref": "#/$defs/actor"},
+        "created_at": {"$ref": "#/$defs/utc"},
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/evidence"}
+        },
+        "links": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/link"}
+        },
+        "extensions": {"$ref": "#/$defs/extensions"}
+      }
+    },
+    "receipt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "subject_revision", "issuer", "issued_at", "method", "result"],
+      "properties": {
+        "id": {"$ref": "#/$defs/uri"},
+        "kind": {
+          "enum": ["integrity_check", "support_assessment", "adoption_decision", "lifecycle"]
+        },
+        "subject_revision": {"$ref": "#/$defs/uri"},
+        "issuer": {"$ref": "#/$defs/actor"},
+        "issued_at": {"$ref": "#/$defs/utc"},
+        "method": {"$ref": "#/$defs/shortText"},
+        "result": {
+          "enum": [
+            "pass", "fail", "indeterminate", "supported", "unsupported",
+            "admitted", "rejected", "withdrawn"
+          ]
+        },
+        "authority_basis": {"enum": ["human_approval", "owner_policy"]},
+        "evidence_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/shortText"}
+        },
+        "explanation": {"$ref": "#/$defs/text"},
+        "extensions": {"$ref": "#/$defs/extensions"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"kind": {"const": "integrity_check"}}},
+          "then": {"properties": {"result": {"enum": ["pass", "fail", "indeterminate"]}}, "not": {"required": ["authority_basis"]}}
+        },
+        {
+          "if": {"properties": {"kind": {"const": "support_assessment"}}},
+          "then": {"properties": {"result": {"enum": ["supported", "unsupported", "indeterminate"]}}, "not": {"required": ["authority_basis"]}}
+        },
+        {
+          "if": {"properties": {"kind": {"const": "adoption_decision"}}},
+          "then": {"required": ["authority_basis"], "properties": {"result": {"enum": ["admitted", "rejected"]}}}
+        },
+        {
+          "if": {"properties": {"kind": {"const": "lifecycle"}}},
+          "then": {"properties": {"result": {"const": "withdrawn"}}, "not": {"required": ["authority_basis"]}}
+        }
+      ]
+    }
+  }
+}

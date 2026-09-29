@@ -1,0 +1,76 @@
+{
+  "oaff_version": "0.1.0",
+  "finding": {
+    "id": "tag:example.org,2026:oaff/finding/retry-42",
+    "revision": "tag:example.org,2026:oaff/revision/retry-42-v1",
+    "statement": "In the synthetic API v2 run, retrying create with the same idempotency key did not create a duplicate.",
+    "type": "observation",
+    "applicability": {
+      "description": "Synthetic API create calls after an ambiguous timeout.",
+      "conditions": [
+        "API v2",
+        "The retry uses the identical idempotency key."
+      ],
+      "exclusions": [
+        "No idempotency key was supplied."
+      ]
+    },
+    "producer": {
+      "id": "tag:example.org,2026:agent/researcher",
+      "kind": "agent"
+    },
+    "created_at": "2026-09-29T12:00:00Z",
+    "evidence": [
+      {
+        "id": "run-42",
+        "source_uri": "https://example.org/runs/42",
+        "content_digest": {
+          "algorithm": "sha-256",
+          "value": "28a181837f8e9071ddbd86007509ba423350988f9abc7377d851ea2ae3d7f8bd"
+        },
+        "availability": "restricted",
+        "locator": "attempt 2 / result",
+        "excerpt": "Synthetic example: one resource identifier observed after retry."
+      }
+    ]
+  },
+  "receipts": [
+    {
+      "id": "tag:example.org,2026:oaff/receipt/support-42",
+      "kind": "support_assessment",
+      "subject_revision": "tag:example.org,2026:oaff/revision/retry-42-v1",
+      "issuer": {
+        "id": "tag:example.org,2026:agent/reviewer",
+        "kind": "agent"
+      },
+      "issued_at": "2026-09-29T12:10:00Z",
+      "method": "synthetic-fixture-review/v1",
+      "result": "indeterminate",
+      "evidence_refs": [
+        "run-42"
+      ],
+      "explanation": "The source is restricted; the receiver cannot inspect it from this package."
+    },
+    {
+      "id": "tag:example.org,2026:oaff/receipt/decision-42",
+      "kind": "adoption_decision",
+      "subject_revision": "tag:example.org,2026:oaff/revision/retry-42-v1",
+      "issuer": {
+        "id": "tag:example.org,2026:human/owner",
+        "kind": "human"
+      },
+      "issued_at": "2026-09-29T12:20:00Z",
+      "method": "synthetic-origin-review/v1",
+      "result": "admitted",
+      "authority_basis": "human_approval",
+      "evidence_refs": [
+        "run-42"
+      ],
+      "explanation": "Illustrative origin decision only; this is not authenticated evidence."
+    }
+  ],
+  "integrity": {
+    "algorithm": "sha-256-jcs",
+    "digest": "cb4511a7596d45364717f3a7e568490146534e073fabcd4d6ea8ac65d48e4d4c"
+  }
+}

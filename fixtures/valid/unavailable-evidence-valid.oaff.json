@@ -1,0 +1,42 @@
+{
+  "oaff_version": "0.1.0",
+  "finding": {
+    "id": "tag:example.org,2026:oaff/finding/unavailable-1",
+    "revision": "tag:example.org,2026:oaff/revision/unavailable-1",
+    "statement": "In the synthetic API v2 run, retrying create with the same idempotency key did not create a duplicate.",
+    "type": "observation",
+    "applicability": {
+      "description": "Synthetic API create calls after an ambiguous timeout.",
+      "conditions": [
+        "API v2",
+        "The retry uses the identical idempotency key."
+      ],
+      "exclusions": [
+        "No idempotency key was supplied."
+      ]
+    },
+    "producer": {
+      "id": "tag:example.org,2026:agent/researcher",
+      "kind": "agent"
+    },
+    "created_at": "2026-09-29T12:00:00Z",
+    "evidence": [
+      {
+        "id": "run-42",
+        "source_uri": "https://example.org/runs/42",
+        "content_digest": {
+          "algorithm": "sha-256",
+          "value": "28a181837f8e9071ddbd86007509ba423350988f9abc7377d851ea2ae3d7f8bd"
+        },
+        "availability": "unavailable",
+        "locator": "attempt 2 / result",
+        "excerpt": "Synthetic example: one resource identifier observed after retry."
+      }
+    ]
+  },
+  "receipts": [],
+  "integrity": {
+    "algorithm": "sha-256-jcs",
+    "digest": "9a72196a2741f8edbe3838c2155433f71e7aea75398732d8bf92813e66561cde"
+  }
+}

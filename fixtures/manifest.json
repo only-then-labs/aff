@@ -1,0 +1,19 @@
+{
+  "valid": [
+    "valid/candidate-valid.oaff.json",
+    "valid/admitted-valid.oaff.json",
+    "valid/withdrawn-valid.oaff.json",
+    "valid/revision-valid.oaff.json",
+    "valid/conflicting-evidence-valid.oaff.json",
+    "valid/unavailable-evidence-valid.oaff.json"
+  ],
+  "invalid": {
+    "invalid/missing-applicability.oaff.json": "invalid_schema",
+    "invalid/wrong-receipt-result.oaff.json": "invalid_schema",
+    "invalid/tampered-statement.oaff.json": "invalid_binding",
+    "invalid/wrong-subject.oaff.json": "invalid_binding",
+    "invalid/unknown-evidence.oaff.json": "invalid_binding",
+    "invalid/self-revision.oaff.json": "invalid_binding",
+    "invalid/duplicate-key.oaff.json": "invalid_json"
+  }
+}
