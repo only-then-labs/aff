@@ -26,6 +26,26 @@ an evidence evaluator, identity verifier, or adoption decision engine.
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-dev.txt
 .venv/bin/python scripts/check_fixtures.py
+.venv/bin/python -m unittest discover -s tests -v
 ```
+
+## Offline verifier (O2)
+
+The Python package adds a standalone CLI and library. It never fetches a
+source URI, authenticates a named receipt issuer, or grants local adoption.
+
+```sh
+oaff verify fixtures/valid/candidate-valid.oaff.json
+oaff verify fixtures/valid/candidate-valid.oaff.json --json
+oaff verify finding.oaff.json --evidence run-42=/path/to/source-bytes
+oaff verify first.oaff.json later.oaff.json
+```
+
+The command exits **0** for a valid package, including
+`valid_with_limits` when source bytes or linked revisions were not supplied;
+**1** for an invalid package or supplied source digest mismatch; and **2**
+for CLI usage errors. JSON output keeps package integrity, evidence-byte
+checks, receipt counts, and local authority separate. Passing the verifier
+never means the Finding is true, authenticated, or approved for reuse.
 
 The format and this repository are licensed under [Apache-2.0](LICENSE).
