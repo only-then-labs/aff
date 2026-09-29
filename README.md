@@ -13,6 +13,7 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [JSON Schema](schema/oaff-0.1.schema.json)
 - [Positive and negative fixtures](fixtures/README.md)
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
+- [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 
 The format contract and independent verifier have merged. Proofpress export is
 in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210); hosted
