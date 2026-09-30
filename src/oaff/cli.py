@@ -7,6 +7,7 @@ import json
 import sys
 from pathlib import Path
 
+from .capture import CaptureError, capture_source
 from .collection import CollectionError, add_package, check_index, write_index
 from .verify import verify_files
 
@@ -27,6 +28,35 @@ def main(argv: list[str] | None = None) -> int:
         help="local source bytes for one evidence ID; only with one package",
     )
     verify.add_argument("--json", action="store_true", help="machine-readable reports")
+    capture = subcommands.add_parser(
+        "capture", help="create a Finding from a local source and explicit conclusion"
+    )
+    capture.add_argument("--source", required=True, type=Path)
+    capture.add_argument("--source-uri", required=True)
+    capture.add_argument("--output", required=True, type=Path)
+    capture.add_argument("--statement", required=True)
+    capture.add_argument("--applicability", required=True)
+    capture.add_argument(
+        "--condition", action="append", required=True, dest="conditions"
+    )
+    capture.add_argument("--exclusion", action="append", default=[], dest="exclusions")
+    capture.add_argument("--producer-id", required=True)
+    capture.add_argument(
+        "--producer-kind",
+        required=True,
+        choices=("agent", "human", "service", "system"),
+    )
+    capture.add_argument(
+        "--type",
+        default="observation",
+        choices=("observation", "procedure", "constraint"),
+    )
+    capture.add_argument(
+        "--availability",
+        default="restricted",
+        choices=("public", "restricted", "unavailable"),
+    )
+    capture.add_argument("--locator")
     collection = subcommands.add_parser(
         "collection", help="manage a Git-native AFF collection"
     )
@@ -44,6 +74,28 @@ def main(argv: list[str] | None = None) -> int:
             command.add_argument("package", type=Path)
         command.add_argument("--root", type=Path, default=Path("aff"))
     args = parser.parse_args(argv)
+
+    if args.command == "capture":
+        try:
+            path = capture_source(
+                source=args.source,
+                source_uri=args.source_uri,
+                output=args.output,
+                statement=args.statement,
+                applicability=args.applicability,
+                conditions=args.conditions,
+                exclusions=args.exclusions,
+                producer_id=args.producer_id,
+                producer_kind=args.producer_kind,
+                finding_type=args.type,
+                availability=args.availability,
+                locator=args.locator,
+            )
+            print(path)
+        except CaptureError as exc:
+            print(f"capture error: {exc}", file=sys.stderr)
+            return 1
+        return 0
 
     if args.command == "collection":
         try:
