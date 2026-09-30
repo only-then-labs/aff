@@ -1,0 +1,1 @@
+synthetic run failure-1: timeout; retry with new key K2; second resource id returned

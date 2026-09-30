@@ -47,6 +47,19 @@ class VerifierTest(unittest.TestCase):
         failing = verify_bytes(candidate, {"run-42": b"changed"})
         self.assertEqual(failing["diagnostics"][0]["code"], "evidence_mismatch")
 
+    def test_successful_and_failed_run_findings_share_the_same_contract(self):
+        for outcome in ("successful", "failed"):
+            with self.subTest(outcome=outcome):
+                package = (
+                    FIXTURES / f"valid/{outcome}-run-finding-valid.oaff.json"
+                ).read_bytes()
+                source = (FIXTURES / f"sources/{outcome}-run.txt").read_bytes()
+                report = verify_bytes(package, {f"run-{outcome}-1": source})
+                self.assertEqual(report["status"], "valid")
+                self.assertEqual(report["integrity"], "pass")
+                self.assertEqual(report["evidence"][0]["check"], "pass")
+                self.assertEqual(report["local_authority"], "not_evaluated")
+
     def test_receipts_do_not_inherit_authority(self):
         admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
         report = verify_bytes(admitted)

@@ -1,0 +1,42 @@
+{
+  "oaff_version": "0.1.0",
+  "finding": {
+    "id": "tag:example.org,2026:oaff/finding/successful-run-1",
+    "revision": "tag:example.org,2026:oaff/revision/successful-run-1-v1",
+    "statement": "After an ambiguous timeout, retrying create with the same idempotency key returned the original resource in this synthetic API v2 run.",
+    "type": "observation",
+    "applicability": {
+      "description": "A create call timed out ambiguously and the retry used the same key.",
+      "conditions": [
+        "API v2",
+        "The retry used the original idempotency key."
+      ],
+      "exclusions": [
+        "The initial create outcome was known before retry."
+      ]
+    },
+    "producer": {
+      "id": "tag:example.org,2026:agent/researcher",
+      "kind": "agent"
+    },
+    "created_at": "2026-09-29T12:00:00Z",
+    "evidence": [
+      {
+        "id": "run-successful-1",
+        "source_uri": "https://example.org/synthetic/runs/successful-1",
+        "content_digest": {
+          "algorithm": "sha-256",
+          "value": "7452f0ab4dfea64772038ee428b635d1ac8e95e76de5ba6111041d36ad3c8e18"
+        },
+        "availability": "restricted",
+        "locator": "result summary",
+        "excerpt": "synthetic run success-1: timeout; retry with key K; original resource id returned"
+      }
+    ]
+  },
+  "receipts": [],
+  "integrity": {
+    "algorithm": "sha-256-jcs",
+    "digest": "76164928566b4968dba45b36c464eabe91d53bd561b16a90c44e2c0e3188db5e"
+  }
+}
