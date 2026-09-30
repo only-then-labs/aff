@@ -62,6 +62,9 @@ It partitions them by a workspace key supplied by the **already authenticated
 caller**, accepts later receipt snapshots for the same immutable Finding,
 deduplicates repeats, and quarantines invalid or conflicting bytes. Every
 result has `local_authority: none`; the inbox has no adoption operation.
+`list_candidates` shows the latest receipt snapshot per revision for review;
+`get_candidate` reads a selected retained snapshot. Both require the caller's
+authenticated workspace key and return no other workspace's records.
 
 ```python
 from oaff import CandidateInbox
