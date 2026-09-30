@@ -144,3 +144,51 @@ class CandidateInbox:
                 "SELECT count(*) FROM quarantine WHERE workspace=?", (workspace,)
             ).fetchone()[0],
         }
+
+    def list_candidates(self, workspace: str, *, limit: int = 20) -> list[dict]:
+        """Summarize the latest retained snapshot of each immutable revision.
+
+        This is an untrusted review queue, never a list of adopted knowledge.
+        Later receipt snapshots replace the displayed snapshot, not history.
+        """
+        if not isinstance(workspace, str) or not workspace.strip():
+            raise ValueError("authenticated workspace key is required")
+        if type(limit) is not int or not 1 <= limit <= 100:
+            raise ValueError("limit must be an integer from 1 to 100")
+        rows = self.connection.execute(
+            "SELECT s.package_digest,s.finding_id,s.revision,s.package_bytes,"
+            "s.verification_json FROM snapshots s WHERE s.workspace=? AND "
+            "s.rowid=(SELECT max(newer.rowid) FROM snapshots newer WHERE "
+            "newer.workspace=s.workspace AND newer.finding_id=s.finding_id "
+            "AND newer.revision=s.revision) ORDER BY s.rowid DESC LIMIT ?",
+            (workspace, limit),
+        ).fetchall()
+        summaries = []
+        for digest, finding_id, revision, package_bytes, verification_json in rows:
+            finding = json.loads(package_bytes)["finding"]
+            summaries.append({
+                "digest": digest, "finding_id": finding_id, "revision": revision,
+                "statement": finding["statement"], "type": finding["type"],
+                "applicability": finding["applicability"],
+                "producer": finding["producer"],
+                "evidence_count": len(finding["evidence"]),
+                "verification": json.loads(verification_json),
+                "local_authority": "none",
+            })
+        return summaries
+
+    def get_candidate(self, workspace: str, package_digest: str) -> dict | None:
+        """Return one workspace-local retained snapshot for explicit review."""
+        if not isinstance(workspace, str) or not workspace.strip():
+            raise ValueError("authenticated workspace key is required")
+        if not isinstance(package_digest, str) or not package_digest:
+            raise ValueError("package digest is required")
+        row = self.connection.execute(
+            "SELECT package_bytes,verification_json FROM snapshots "
+            "WHERE workspace=? AND package_digest=?",
+            (workspace, package_digest),
+        ).fetchone()
+        if row is None:
+            return None
+        return {"digest": package_digest, "package": json.loads(row[0]),
+                "verification": json.loads(row[1]), "local_authority": "none"}

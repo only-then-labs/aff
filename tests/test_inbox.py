@@ -49,6 +49,27 @@ class InboxTests(unittest.TestCase):
             self.assertEqual(inbox.counts("workspace-a"),
                              {"revisions": 1, "snapshots": 1, "quarantined": 1})
 
+    def test_inspection_uses_latest_snapshot_and_never_crosses_workspace(self):
+        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
+            original = inbox.ingest("workspace-a", candidate)
+            latest = inbox.ingest("workspace-a", admitted)
+            inbox.ingest("workspace-b", candidate)
+            rows = inbox.list_candidates("workspace-a")
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["digest"], latest["digest"])
+            self.assertEqual(rows[0]["local_authority"], "none")
+            self.assertEqual(rows[0]["verification"]["receipt_counts"]["adoption_decision"], 1)
+            self.assertEqual(inbox.list_candidates("workspace-b")[0]["digest"],
+                             original["digest"])
+            self.assertIsNone(inbox.get_candidate("workspace-b", latest["digest"]))
+            selected = inbox.get_candidate("workspace-a", latest["digest"])
+            self.assertEqual(selected["package"]["receipts"][-1]["result"], "admitted")
+            self.assertEqual(selected["local_authority"], "none")
+            with self.assertRaisesRegex(ValueError, "limit"):
+                inbox.list_candidates("workspace-a", limit=101)
+
     def test_tampered_and_mismatched_evidence_are_quarantined(self):
         candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
         tampered = (FIXTURES / "invalid/tampered-statement.oaff.json").read_bytes()
