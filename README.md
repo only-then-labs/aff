@@ -17,6 +17,7 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Lifecycle reconciliation boundary](docs/LIFECYCLE-RECONCILIATION.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 - [Git collection guide](docs/GIT-COLLECTION.md) and [browsable example](examples/git-collection/aff/index.md)
+- [First outside trial guide](docs/OUTSIDE-TRIAL.md) for a team's own notes and an independent reader
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress
 export merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210),
