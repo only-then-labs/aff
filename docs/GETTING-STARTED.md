@@ -15,7 +15,7 @@ From a shell with Python 3.10+:
 
 ```sh
 python3 -m venv .venv
-.venv/bin/python -m pip install 'git+https://github.com/only-then-labs/aff.git'
+.venv/bin/python -m pip install 'git+https://github.com/only-then-labs/aff.git@v0.1.0a1'
 .venv/bin/aff --help
 ```
 
