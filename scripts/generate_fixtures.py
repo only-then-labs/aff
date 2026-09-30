@@ -58,7 +58,7 @@ base = {
     "receipts": [],
 }
 
-write("valid/candidate-valid.oaff.json", copy.deepcopy(base))
+write("valid/candidate-valid.aff", copy.deepcopy(base))
 
 admitted = copy.deepcopy(base)
 admitted["receipts"] = [
@@ -86,7 +86,7 @@ admitted["receipts"] = [
         "explanation": "Illustrative origin decision only; this is not authenticated evidence.",
     },
 ]
-write("valid/admitted-valid.oaff.json", admitted)
+write("valid/admitted-valid.aff", admitted)
 
 withdrawn = copy.deepcopy(admitted)
 withdrawn["receipts"].append(
@@ -101,7 +101,7 @@ withdrawn["receipts"].append(
         "explanation": "Illustrative withdrawal; external authority is not authenticated.",
     }
 )
-write("valid/withdrawn-valid.oaff.json", withdrawn)
+write("valid/withdrawn-valid.aff", withdrawn)
 
 revision = copy.deepcopy(base)
 revision["finding"]["revision"] = REVISION_2
@@ -112,7 +112,7 @@ revision["finding"]["statement"] = (
 revision["finding"]["links"] = [
     {"relation": "revision_of", "target_id": FINDING_ID, "target_revision": REVISION_1}
 ]
-write("valid/revision-valid.oaff.json", revision)
+write("valid/revision-valid.aff", revision)
 
 conflicting = copy.deepcopy(base)
 conflicting["finding"]["id"] = "tag:example.org,2026:oaff/finding/conflict-1"
@@ -142,13 +142,13 @@ conflicting["receipts"] = [
         "evidence_refs": ["run-42", "run-43"],
     }
 ]
-write("valid/conflicting-evidence-valid.oaff.json", conflicting)
+write("valid/conflicting-evidence-valid.aff", conflicting)
 
 unavailable = copy.deepcopy(base)
 unavailable["finding"]["id"] = "tag:example.org,2026:oaff/finding/unavailable-1"
 unavailable["finding"]["revision"] = "tag:example.org,2026:oaff/revision/unavailable-1"
 unavailable["finding"]["evidence"][0]["availability"] = "unavailable"
-write("valid/unavailable-evidence-valid.oaff.json", unavailable)
+write("valid/unavailable-evidence-valid.aff", unavailable)
 
 # A run is evidence; the reusable conclusion is the Finding. These two
 # packages deliberately use the same v0.1 shape for positive and negative
@@ -201,34 +201,34 @@ for outcome, source_bytes, statement, description, conditions, exclusions in run
             ],
         }
     )
-    write(f"valid/{outcome}-run-finding-valid.oaff.json", package)
+    write(f"valid/{outcome}-run-finding-valid.aff", package)
 
 missing_scope = copy.deepcopy(base)
 del missing_scope["finding"]["applicability"]
-write("invalid/missing-applicability.oaff.json", missing_scope)
+write("invalid/missing-applicability.aff", missing_scope)
 
 wrong_result = copy.deepcopy(admitted)
 wrong_result["receipts"][0]["result"] = "admitted"
-write("invalid/wrong-receipt-result.oaff.json", wrong_result)
+write("invalid/wrong-receipt-result.aff", wrong_result)
 
 tampered = copy.deepcopy(base)
-write("invalid/tampered-statement.oaff.json", tampered)
-path = ROOT / "invalid/tampered-statement.oaff.json"
+write("invalid/tampered-statement.aff", tampered)
+path = ROOT / "invalid/tampered-statement.aff"
 path.write_text(path.read_text().replace("did not create a duplicate", "created a duplicate"))
 
 wrong_subject = copy.deepcopy(admitted)
 wrong_subject["receipts"][0]["subject_revision"] = REVISION_2
-write("invalid/wrong-subject.oaff.json", wrong_subject)
+write("invalid/wrong-subject.aff", wrong_subject)
 
 unknown_evidence = copy.deepcopy(admitted)
 unknown_evidence["receipts"][0]["evidence_refs"] = ["not-present"]
-write("invalid/unknown-evidence.oaff.json", unknown_evidence)
+write("invalid/unknown-evidence.aff", unknown_evidence)
 
 self_revision = copy.deepcopy(revision)
 self_revision["finding"]["links"][0]["target_revision"] = REVISION_2
-write("invalid/self-revision.oaff.json", self_revision)
+write("invalid/self-revision.aff", self_revision)
 
-(ROOT / "invalid/duplicate-key.oaff.json").write_text(
+(ROOT / "invalid/duplicate-key.aff").write_text(
     '{"oaff_version":"0.1.0","oaff_version":"0.1.0"}\n'
 )
 print("Generated 15 synthetic fixture files and two synthetic source files")

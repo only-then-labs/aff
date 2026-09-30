@@ -14,7 +14,7 @@ class OKFViewTests(unittest.TestCase):
     def test_success_and_failure_use_the_same_limited_view(self):
         for outcome in ("successful", "failed"):
             with self.subTest(outcome=outcome):
-                source = FIXTURES / f"valid/{outcome}-run-finding-valid.oaff.json"
+                source = FIXTURES / f"valid/{outcome}-run-finding-valid.aff"
                 markdown, loss = okf_view(source.read_bytes())
                 frontmatter = json.loads(markdown.split("---\n", 2)[1])
                 self.assertEqual(frontmatter["type"], "Finding")
@@ -30,7 +30,7 @@ class OKFViewTests(unittest.TestCase):
         for name in ("admitted-valid", "withdrawn-valid"):
             with self.subTest(name=name):
                 markdown, loss = okf_view(
-                    (FIXTURES / f"valid/{name}.oaff.json").read_bytes()
+                    (FIXTURES / f"valid/{name}.aff").read_bytes()
                 )
                 frontmatter = json.loads(markdown.split("---\n", 2)[1])
                 self.assertEqual(frontmatter["status"], "draft")
@@ -39,10 +39,10 @@ class OKFViewTests(unittest.TestCase):
 
     def test_invalid_package_cannot_be_rendered(self):
         with self.assertRaises(ValueError):
-            okf_view((FIXTURES / "invalid/tampered-statement.oaff.json").read_bytes())
+            okf_view((FIXTURES / "invalid/tampered-statement.aff").read_bytes())
 
     def test_non_web_source_uri_is_reported_as_omitted(self):
-        package = json.loads((FIXTURES / "valid/candidate-valid.oaff.json").read_bytes())
+        package = json.loads((FIXTURES / "valid/candidate-valid.aff").read_bytes())
         package["finding"]["evidence"][0]["source_uri"] = "urn:example:local-run"
         unsigned = {key: value for key, value in package.items() if key != "integrity"}
         package["integrity"]["digest"] = hashlib.sha256(rfc8785.dumps(unsigned)).hexdigest()

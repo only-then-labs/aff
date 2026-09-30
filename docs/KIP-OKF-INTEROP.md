@@ -9,8 +9,8 @@ not customer installations or a claimed certified conversion:
 - [OKF specification](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/ad30107c31c06aec8a7d5636e0d1058118604e6f/SPEC.md)
   at `ad30107` (v0.2).
 - [AFF/OAFF v0.1](../spec/OAFF-v0.1.md) and the paired
-  [successful](../fixtures/valid/successful-run-finding-valid.oaff.json) /
-  [failed](../fixtures/valid/failed-run-finding-valid.oaff.json) run Findings.
+  [successful](../fixtures/valid/successful-run-finding-valid.aff) /
+  [failed](../fixtures/valid/failed-run-finding-valid.aff) run Findings.
 
 ## Unit of exchange and authority
 

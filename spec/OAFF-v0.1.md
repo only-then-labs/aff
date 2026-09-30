@@ -14,7 +14,9 @@ independently. A Finding can be a candidate, be rejected, or have an
 originating organization's approval; OAFF does not grant permission to rely
 on it in a receiving organization.
 
-OAFF v0.1 exchanges a **package snapshot** in one `.oaff.json` file. A
+OAFF v0.1 exchanges a **package snapshot** in one JSON file. New packages
+SHOULD use the `.aff` extension. Existing `.oaff.json` packages remain valid;
+receivers MUST determine validity from content rather than the extension. A
 snapshot contains exactly one immutable Finding revision and zero or more
 attributed receipts. A later package MAY carry more receipts for the same
 revision; it then has a different package digest. Rewording the statement,
@@ -165,7 +167,7 @@ exchange once multiple implementations need it.
 
 ## 7. Worked example
 
-[candidate-valid.oaff.json](../fixtures/valid/candidate-valid.oaff.json)
+[candidate-valid.aff](../fixtures/valid/candidate-valid.aff)
 contains one scoped, evidence-referenced Finding. Its package digest is
 computed by the rule above. Other fixtures show an originating decision,
 withdrawal receipt, restricted evidence, and deliberately invalid packages.

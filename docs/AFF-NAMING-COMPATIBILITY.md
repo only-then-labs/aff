@@ -11,15 +11,18 @@ contract, originally called Open Agent Findings Format.
 | --- | --- | --- |
 | Public name | AFF — Agent Findings Format | Use AFF in product-facing prose. Do not reinterpret existing OAFF files. |
 | JSON key and version | `oaff_version: "0.1.0"` | Required unchanged for v0.1. Readers reject unknown versions under the current spec. |
-| Filename convention | `.oaff.json` | Keep for v0.1 interchange and all golden fixtures. A filename alone never determines validity. |
+| Filename convention | `.aff` for new packages | Existing `.oaff.json` files remain valid and readable. A filename alone never determines validity. |
 | Python distribution/import | `oaff` | Keep the published distribution and `import oaff`; an `aff` distribution name is not reserved or promised. |
 | CLI | `aff` and `oaff` | Both call the same offline verifier and accept the same arguments; keep `oaff` for scripts. |
 | Media type | `application/json` | No custom or registered media type is claimed for v0.1. Consumers identify the contract from `oaff_version` and validate it. |
 | Package digest | SHA-256 over RFC 8785 JCS without top-level `integrity` | Exact existing bytes and all golden vectors remain valid. A label change outside the package does not alter the digest. |
 
-The CLI alias is an ergonomic addition, not a second serialization or a new
-protocol. `aff` and `oaff` must produce the same machine-readable report for
-the same input. Public examples may use `aff`; existing commands remain valid.
+The extension change is an ergonomic label, not a second serialization or a
+new protocol. `aff` and `oaff` must produce the same machine-readable report
+for the same input regardless of whether it is named `.aff` or `.oaff.json`.
+The new golden fixtures use `.aff`; previously distributed fixture bytes and
+packages remain valid under their old names. The verifier inspects content,
+not extension. Public examples use `.aff`; existing commands remain valid.
 
 ## Future wire naming
 
