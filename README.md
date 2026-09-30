@@ -70,8 +70,15 @@ generated, reviewable list of the packages. Keep existing Markdown post-mortems
 as source material; a Finding is a separate, bounded conclusion.
 
 ```sh
+aff capture --source postmortems/oom.md \
+  --source-uri https://example.org/notes/oom --output oom.aff \
+  --statement 'Batch size 64 exhausted memory on accelerator A.' \
+  --applicability 'Training with the same model and accelerator configuration.' \
+  --condition 'Batch size 64' --condition 'Accelerator A' \
+  --producer-id tag:example.org,2026:human/researcher --producer-kind human
+aff verify oom.aff --evidence source-1=postmortems/oom.md
 aff collection init
-aff collection add path/to/finding.aff
+aff collection add oom.aff
 aff collection check
 git add aff/
 ```
