@@ -14,6 +14,7 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Positive and negative fixtures](fixtures/README.md)
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
 - [KIP/OKF interoperability mapping and loss report](docs/KIP-OKF-INTEROP.md)
+- [Lifecycle reconciliation boundary](docs/LIFECYCLE-RECONCILIATION.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress export
@@ -62,14 +63,18 @@ public name; existing `.oaff.json` files, the `oaff_version` key, the Python
 
 `CandidateInbox` retains verified foreign packages in a local SQLite store.
 It partitions them by a workspace key supplied by the **already authenticated
-caller**, accepts later receipt snapshots for the same immutable Finding,
-deduplicates repeats, and quarantines invalid or conflicting bytes. Every
+caller**, accepts comparable receipt snapshots for the same immutable Finding
+even when delivered out of order, deduplicates repeats, and quarantines
+invalid, conflicting, or divergent receipt histories. Every
 result has `local_authority: none`; the inbox has no adoption operation.
 `list_candidates` shows the latest receipt snapshot per revision for review;
 `get_candidate` reads a selected retained snapshot. Both require the caller's
 authenticated workspace key and return no other workspace's records. A selected
 snapshot reports whether it is the latest retained snapshot of that revision;
 receivers must not silently promote an older snapshot over newer receipts.
+`lineage` shows retained revision and claimed lifecycle history for local
+review, without deciding which revision is current or whose withdrawal has
+authority. See the [O5 boundary](docs/LIFECYCLE-RECONCILIATION.md).
 
 ```python
 from oaff import CandidateInbox

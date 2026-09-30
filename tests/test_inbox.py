@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import json
+import sqlite3
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -72,6 +73,100 @@ class InboxTests(unittest.TestCase):
             self.assertEqual(selected["local_authority"], "none")
             with self.assertRaisesRegex(ValueError, "limit"):
                 inbox.list_candidates("workspace-a", limit=101)
+
+    def test_lineage_inspection_keeps_origin_lifecycle_untrusted(self):
+        finding_id = "tag:example.org,2026:oaff/finding/retry-42"
+        with TemporaryDirectory() as directory, CandidateInbox(
+            Path(directory) / "inbox.db"
+        ) as inbox:
+            for name in ("candidate-valid", "admitted-valid", "withdrawn-valid",
+                         "revision-valid"):
+                inbox.ingest("workspace-a", (FIXTURES / f"valid/{name}.oaff.json").read_bytes())
+            inbox.ingest("workspace-b", (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes())
+            lineage = inbox.lineage("workspace-a", finding_id)
+            self.assertEqual(lineage["total_revisions"], 2)
+            self.assertEqual(lineage["current_revision"], "undetermined")
+            self.assertTrue(lineage["local_review_required"])
+            self.assertEqual(lineage["local_authority"], "none")
+            newer, earlier = lineage["revisions"]
+            self.assertEqual(newer["links_claimed"][0]["relation"], "revision_of")
+            self.assertTrue(newer["links_claimed"][0]["target_retained"])
+            self.assertEqual(earlier["snapshot_count"], 3)
+            self.assertIn("withdrawn", [row["result"] for row in
+                         earlier["origin_decisions_claimed"]])
+            other = inbox.lineage("workspace-b", finding_id)
+            self.assertEqual(other["total_revisions"], 1)
+            self.assertEqual(other["revisions"][0]["origin_decisions_claimed"], [])
+            self.assertIsNone(inbox.lineage("workspace-b", "tag:example.org,2026:missing"))
+
+    def test_out_of_order_snapshot_cannot_hide_withdrawal(self):
+        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        withdrawn = (FIXTURES / "valid/withdrawn-valid.oaff.json").read_bytes()
+        with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
+            latest = inbox.ingest("workspace-a", withdrawn)
+            inbox.ingest("workspace-a", candidate)
+            inbox.ingest("workspace-a", admitted)
+            self.assertEqual(inbox.list_candidates("workspace-a")[0]["digest"],
+                             latest["digest"])
+            self.assertTrue(inbox.get_candidate("workspace-a", latest["digest"])[
+                "latest_snapshot"])
+            finding_id = json.loads(candidate)["finding"]["id"]
+            self.assertEqual(inbox.lineage("workspace-a", finding_id)["revisions"][0][
+                "snapshot_count"], 3)
+
+    def test_divergent_or_mutated_receipt_history_is_quarantined(self):
+        admitted = json.loads((FIXTURES / "valid/admitted-valid.oaff.json").read_bytes())
+        changed = copy.deepcopy(admitted)
+        changed["receipts"][0]["result"] = "supported"
+        branch = copy.deepcopy(admitted)
+        branch["receipts"] = [branch["receipts"][0]]
+        branch["receipts"].append({
+            "id": "tag:example.org,2026:oaff/receipt/other",
+            "kind": "lifecycle", "subject_revision": branch["finding"]["revision"],
+            "issuer": {"id": "tag:example.org,2026:human/other", "kind": "human"},
+            "issued_at": "2026-09-30T12:00:00Z", "method": "synthetic",
+            "result": "withdrawn",
+        })
+        with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
+            inbox.ingest("workspace-a", seal(admitted))
+            self.assertEqual(inbox.ingest("workspace-a", seal(changed))["reason"],
+                             "conflicting_receipt_identity")
+            self.assertEqual(inbox.ingest("workspace-a", seal(branch))["reason"],
+                             "divergent_receipt_history")
+            self.assertEqual(inbox.counts("workspace-a")["snapshots"], 1)
+
+    def test_existing_inbox_receipt_counts_are_migrated(self):
+        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        package = json.loads(admitted)
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "old.db"
+            connection = sqlite3.connect(path)
+            connection.executescript("""
+                CREATE TABLE revisions(workspace TEXT, finding_id TEXT,
+                    revision TEXT, finding_hash TEXT,
+                    PRIMARY KEY(workspace,finding_id,revision));
+                CREATE TABLE snapshots(workspace TEXT, package_digest TEXT,
+                    finding_id TEXT, revision TEXT, package_bytes BLOB,
+                    verification_json TEXT,
+                    PRIMARY KEY(workspace,package_digest));
+            """)
+            finding = package["finding"]
+            connection.execute("INSERT INTO revisions VALUES (?,?,?,?)", (
+                "workspace-a", finding["id"], finding["revision"],
+                hashlib.sha256(rfc8785.dumps(finding)).hexdigest()))
+            connection.execute("INSERT INTO snapshots VALUES (?,?,?,?,?,?)", (
+                "workspace-a", package["integrity"]["digest"], finding["id"],
+                finding["revision"], admitted, "{}"))
+            connection.commit()
+            connection.close()
+            with CandidateInbox(path) as inbox:
+                count = inbox.connection.execute(
+                    "SELECT receipt_count FROM snapshots"
+                ).fetchone()[0]
+                self.assertEqual(count, len(package["receipts"]))
+                self.assertTrue(inbox.get_candidate(
+                    "workspace-a", package["integrity"]["digest"])["latest_snapshot"])
 
     def test_tampered_and_mismatched_evidence_are_quarantined(self):
         candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()

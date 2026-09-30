@@ -40,6 +40,7 @@ class CandidateInbox:
                 revision TEXT NOT NULL,
                 package_bytes BLOB NOT NULL,
                 verification_json TEXT NOT NULL,
+                receipt_count INTEGER NOT NULL,
                 PRIMARY KEY (workspace, package_digest),
                 FOREIGN KEY (workspace, finding_id, revision)
                     REFERENCES revisions (workspace, finding_id, revision)
@@ -53,6 +54,18 @@ class CandidateInbox:
                 verification_json TEXT NOT NULL
             );
         """)
+        columns = {row[1] for row in self.connection.execute("PRAGMA table_info(snapshots)")}
+        if "receipt_count" not in columns:
+            # Existing inboxes created before O5 retain their exact package bytes.
+            with self.connection:
+                self.connection.execute("ALTER TABLE snapshots ADD COLUMN receipt_count INTEGER")
+                for rowid, data in self.connection.execute(
+                    "SELECT rowid,package_bytes FROM snapshots"
+                ):
+                    self.connection.execute(
+                        "UPDATE snapshots SET receipt_count=? WHERE rowid=?",
+                        (len(json.loads(data)["receipts"]), rowid),
+                    )
 
     def close(self) -> None:
         self.connection.close()
@@ -86,6 +99,7 @@ class CandidateInbox:
         finding_hash = _sha(rfc8785.dumps(finding))
         package_digest = document["integrity"]["digest"]
         key = (workspace, finding["id"], finding["revision"])
+        new_receipts = {row["id"]: rfc8785.dumps(row) for row in document["receipts"]}
         with self.connection:
             prior = self.connection.execute(
                 "SELECT finding_hash FROM revisions WHERE workspace=? AND finding_id=? AND revision=?",
@@ -100,14 +114,30 @@ class CandidateInbox:
             ).fetchone()
             if existing:
                 return self._result("idempotent", report, package_digest)
+            for (old_bytes,) in self.connection.execute(
+                "SELECT package_bytes FROM snapshots WHERE workspace=? AND "
+                "finding_id=? AND revision=?", key,
+            ):
+                old_receipts = {
+                    row["id"]: rfc8785.dumps(row)
+                    for row in json.loads(old_bytes)["receipts"]
+                }
+                if any(old_receipts[receipt_id] != new_receipts[receipt_id]
+                       for receipt_id in old_receipts.keys() & new_receipts.keys()):
+                    return self._quarantine(workspace, data, raw_digest,
+                                            "conflicting_receipt_identity", report)
+                if not (old_receipts.keys() <= new_receipts.keys()
+                        or new_receipts.keys() <= old_receipts.keys()):
+                    return self._quarantine(workspace, data, raw_digest,
+                                            "divergent_receipt_history", report)
             if not prior:
                 self.connection.execute(
                     "INSERT INTO revisions VALUES (?, ?, ?, ?)", (*key, finding_hash)
                 )
             self.connection.execute(
-                "INSERT INTO snapshots VALUES (?, ?, ?, ?, ?, ?)",
+                "INSERT INTO snapshots VALUES (?, ?, ?, ?, ?, ?, ?)",
                 (workspace, package_digest, finding["id"], finding["revision"],
-                 data, json.dumps(report, sort_keys=True)),
+                 data, json.dumps(report, sort_keys=True), len(new_receipts)),
             )
         return self._result("candidate", report, package_digest)
 
@@ -158,9 +188,10 @@ class CandidateInbox:
         rows = self.connection.execute(
             "SELECT s.package_digest,s.finding_id,s.revision,s.package_bytes,"
             "s.verification_json FROM snapshots s WHERE s.workspace=? AND "
-            "s.rowid=(SELECT max(newer.rowid) FROM snapshots newer WHERE "
+            "s.rowid=(SELECT newer.rowid FROM snapshots newer WHERE "
             "newer.workspace=s.workspace AND newer.finding_id=s.finding_id "
-            "AND newer.revision=s.revision) ORDER BY s.rowid DESC LIMIT ?",
+            "AND newer.revision=s.revision ORDER BY newer.receipt_count DESC, "
+            "newer.rowid DESC LIMIT 1) ORDER BY s.rowid DESC LIMIT ?",
             (workspace, limit),
         ).fetchall()
         summaries = []
@@ -191,11 +222,70 @@ class CandidateInbox:
         if row is None:
             return None
         latest_rowid = self.connection.execute(
-            "SELECT max(rowid) FROM snapshots WHERE workspace=? AND "
-            "finding_id=? AND revision=?",
+            "SELECT rowid FROM snapshots WHERE workspace=? AND "
+            "finding_id=? AND revision=? ORDER BY receipt_count DESC,rowid DESC LIMIT 1",
             (workspace, row[1], row[2]),
         ).fetchone()[0]
         return {"digest": package_digest, "package": json.loads(row[3]),
                 "verification": json.loads(row[4]),
                 "latest_snapshot": row[0] == latest_rowid,
                 "local_authority": "none"}
+
+    def lineage(self, workspace: str, finding_id: str) -> dict | None:
+        """Show retained revision and lifecycle claims for local review.
+
+        Ingestion order chooses the displayed receipt snapshot *within* each
+        immutable revision. It cannot establish the current revision, issuer
+        authenticity, or a receiver-side withdrawal decision.
+        """
+        if not isinstance(workspace, str) or not workspace.strip():
+            raise ValueError("authenticated workspace key is required")
+        if not isinstance(finding_id, str) or not finding_id:
+            raise ValueError("finding ID is required")
+        total = self.connection.execute(
+            "SELECT count(*) FROM revisions WHERE workspace=? AND finding_id=?",
+            (workspace, finding_id),
+        ).fetchone()[0]
+        if not total:
+            return None
+        rows = self.connection.execute(
+            "SELECT s.package_digest,s.revision,s.package_bytes,count(older.rowid) "
+            "FROM snapshots s JOIN snapshots older ON older.workspace=s.workspace "
+            "AND older.finding_id=s.finding_id AND older.revision=s.revision "
+            "WHERE s.workspace=? AND s.finding_id=? AND s.rowid=(SELECT newer.rowid "
+            "FROM snapshots newer WHERE newer.workspace=s.workspace AND "
+            "newer.finding_id=s.finding_id AND newer.revision=s.revision "
+            "ORDER BY newer.receipt_count DESC,newer.rowid DESC LIMIT 1) "
+            "GROUP BY s.rowid ORDER BY s.rowid DESC LIMIT 100",
+            (workspace, finding_id),
+        ).fetchall()
+        retained = {
+            (row[0], row[1])
+            for row in self.connection.execute(
+                "SELECT finding_id,revision FROM revisions WHERE workspace=?", (workspace,)
+            )
+        }
+        revisions = []
+        for digest, revision, package_bytes, snapshot_count in rows:
+            package = json.loads(package_bytes)
+            links = []
+            for link in package["finding"].get("links", []):
+                links.append({**link, "target_retained":
+                              (link["target_id"], link["target_revision"]) in retained})
+            revisions.append({
+                "revision": revision,
+                "package_digest": digest,
+                "snapshot_count": snapshot_count,
+                "created_at_claimed": package["finding"]["created_at"],
+                "links_claimed": links,
+                "origin_decisions_claimed": [
+                    {"kind": receipt["kind"], "result": receipt["result"],
+                     "issuer": receipt["issuer"], "issued_at": receipt["issued_at"]}
+                    for receipt in package["receipts"]
+                    if receipt["kind"] in {"adoption_decision", "lifecycle"}
+                ],
+            })
+        return {"finding_id": finding_id, "revisions": revisions,
+                "total_revisions": total, "has_more": total > len(revisions),
+                "current_revision": "undetermined",
+                "local_review_required": True, "local_authority": "none"}
