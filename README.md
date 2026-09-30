@@ -7,7 +7,21 @@ may want to reuse. The record carries its scope, evidence references, attributed
 checks and decisions, and revision history. A receiver decides for itself
 whether to trust and use a finding.
 
-This repository contains the **v0.1 draft**, not a ratified standard:
+AFF is also a governance framework for the life of that Finding: propose,
+verify, decide local admission, revise or withdraw, and record later use.
+The v0.1 format represents parts of this lifecycle; the CLI currently creates
+candidates, performs mechanical checks, and manages a Git collection. It does
+not enforce local approval or automate withdrawal. See the
+[governance model](docs/GOVERNANCE.md) for the current boundary.
+
+This repository contains the **v0.1 draft**, not a ratified standard.
+
+**New here?** Follow [Getting started](docs/GETTING-STARTED.md) to install
+`aff`, run `aff init` in an existing repository, capture one Finding from a
+note, and verify it before adding it to Git. The generated `AGENTS.md` and
+`aff/policy.md` provide starter instructions for agents and people.
+
+Reference material:
 
 - [Normative specification](spec/OAFF-v0.1.md)
 - [JSON Schema](schema/oaff-0.1.schema.json)
@@ -18,6 +32,7 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 - [Git collection guide](docs/GIT-COLLECTION.md) and [browsable example](examples/git-collection/aff/index.md)
 - [First outside trial guide](docs/OUTSIDE-TRIAL.md) for a team's own notes and an independent reader
+- [Governance model](docs/GOVERNANCE.md) for proposal, checks, local decisions, revisions, and withdrawal
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress
 export merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210),

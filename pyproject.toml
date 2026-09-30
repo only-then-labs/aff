@@ -20,3 +20,5 @@ packages = ["src/oaff"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "schema/oaff-0.1.schema.json" = "oaff/schema.json"
+"src/oaff/templates/AGENTS.md" = "oaff/templates/AGENTS.md"
+"src/oaff/templates/policy.md" = "oaff/templates/policy.md"

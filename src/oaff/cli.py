@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .capture import CaptureError, capture_source
 from .collection import CollectionError, add_package, check_index, write_index
+from .onboarding import InitError, init_project
 from .verify import verify_files
 
 
@@ -18,6 +19,8 @@ def main(argv: list[str] | None = None) -> int:
         prog=command_name if command_name in {"aff", "oaff"} else "oaff"
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
+    init = subcommands.add_parser("init", help="set up AFF in an existing project")
+    init.add_argument("--project", type=Path, default=Path("."))
     verify = subcommands.add_parser("verify", help="verify one or more OAFF files")
     verify.add_argument("packages", nargs="+", type=Path)
     verify.add_argument(
@@ -74,6 +77,15 @@ def main(argv: list[str] | None = None) -> int:
             command.add_argument("package", type=Path)
         command.add_argument("--root", type=Path, default=Path("aff"))
     args = parser.parse_args(argv)
+
+    if args.command == "init":
+        try:
+            for message in init_project(args.project):
+                print(message)
+        except InitError as exc:
+            print(f"init error: {exc}", file=sys.stderr)
+            return 1
+        return 0
 
     if args.command == "capture":
         try:
