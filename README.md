@@ -29,6 +29,7 @@ Reference material:
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
 - [KIP/OKF interoperability mapping and loss report](docs/KIP-OKF-INTEROP.md)
 - [Lifecycle reconciliation boundary](docs/LIFECYCLE-RECONCILIATION.md)
+- [Use and outcome record RFC](docs/O6-USE-OUTCOME-RFC.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 - [Git collection guide](docs/GIT-COLLECTION.md) and [browsable example](examples/git-collection/aff/index.md)
 - [First outside trial guide](docs/OUTSIDE-TRIAL.md) for a team's own notes and an independent reader
