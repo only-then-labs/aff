@@ -1,4 +1,4 @@
-"""Command-line OAFF verifier."""
+"""Command-line AFF verifier for the OAFF v0.1 wire format."""
 
 from __future__ import annotations
 
@@ -11,7 +11,8 @@ from .verify import verify_files
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="oaff")
+    command_name = Path(sys.argv[0]).name
+    parser = argparse.ArgumentParser(prog=command_name if command_name in {"aff", "oaff"} else "oaff")
     subcommands = parser.add_subparsers(dest="command", required=True)
     verify = subcommands.add_parser("verify", help="verify one or more OAFF files")
     verify.add_argument("packages", nargs="+", type=Path)

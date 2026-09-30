@@ -1,8 +1,8 @@
-# OAFF — Open Agent Findings Format
+# AFF — Agent Findings Format
 
 **A portable format for agent findings, with evidence and verification.**
 
-OAFF defines a small, versioned JSON record for a conclusion an agent or human
+AFF defines a small, versioned JSON record for a conclusion an agent or human
 may want to reuse. The record carries its scope, evidence references, attributed
 checks and decisions, and revision history. A receiver decides for itself
 whether to trust and use a finding.
@@ -15,8 +15,8 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 
-The format contract and independent verifier have merged. Proofpress export is
-in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210); hosted
+The OAFF v0.1 format contract and independent verifier have merged. Proofpress export
+merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210); hosted
 import, lifecycle sync, and conformance release remain in the
 [strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e).
 
@@ -37,10 +37,10 @@ The Python package adds a standalone CLI and library. It never fetches a
 source URI, authenticates a named receipt issuer, or grants local adoption.
 
 ```sh
-oaff verify fixtures/valid/candidate-valid.oaff.json
-oaff verify fixtures/valid/candidate-valid.oaff.json --json
-oaff verify finding.oaff.json --evidence run-42=/path/to/source-bytes
-oaff verify first.oaff.json later.oaff.json
+aff verify fixtures/valid/candidate-valid.oaff.json
+aff verify fixtures/valid/candidate-valid.oaff.json --json
+aff verify finding.oaff.json --evidence run-42=/path/to/source-bytes
+aff verify first.oaff.json later.oaff.json
 ```
 
 The command exits **0** for a valid package, including
@@ -49,6 +49,11 @@ The command exits **0** for a valid package, including
 for CLI usage errors. JSON output keeps package integrity, evidence-byte
 checks, receipt counts, and local authority separate. Passing the verifier
 never means the Finding is true, authenticated, or approved for reuse.
+
+`oaff verify` remains an equivalent command for existing scripts. AFF is the
+public name; existing `.oaff.json` files, the `oaff_version` key, the Python
+`oaff` import package, and the v0.1 digest contract remain unchanged. See the
+[naming and compatibility decision](docs/AFF-NAMING-COMPATIBILITY.md).
 
 ## Candidate inbox (O4 foundation)
 

@@ -5,13 +5,14 @@ build-backend = "hatchling.build"
 [project]
 name = "oaff"
 version = "0.1.0a1"
-description = "Offline verifier for the Open Agent Findings Format draft"
+description = "Offline verifier for AFF (Agent Findings Format), OAFF v0.1"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 dependencies = ["jsonschema>=4.23,<5", "rfc8785>=0.1.4,<1"]
 
 [project.scripts]
+aff = "oaff.cli:main"
 oaff = "oaff.cli:main"
 
 [tool.hatch.build.targets.wheel]
