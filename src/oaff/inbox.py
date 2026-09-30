@@ -175,7 +175,8 @@ class CandidateInbox:
             ).fetchone()[0],
         }
 
-    def list_candidates(self, workspace: str, *, limit: int = 20) -> list[dict]:
+    def list_candidates(self, workspace: str, *, limit: int = 20,
+                        before: str | None = None) -> list[dict]:
         """Summarize the latest retained snapshot of each immutable revision.
 
         This is an untrusted review queue, never a list of adopted knowledge.
@@ -185,14 +186,26 @@ class CandidateInbox:
             raise ValueError("authenticated workspace key is required")
         if type(limit) is not int or not 1 <= limit <= 100:
             raise ValueError("limit must be an integer from 1 to 100")
+        before_rowid = None
+        if before is not None:
+            if not isinstance(before, str) or not before:
+                raise ValueError("before must be a retained package digest")
+            row = self.connection.execute(
+                "SELECT rowid FROM snapshots WHERE workspace=? AND package_digest=?",
+                (workspace, before),
+            ).fetchone()
+            if row is None:
+                raise ValueError("before cursor is not retained in this workspace")
+            before_rowid = row[0]
         rows = self.connection.execute(
             "SELECT s.package_digest,s.finding_id,s.revision,s.package_bytes,"
             "s.verification_json FROM snapshots s WHERE s.workspace=? AND "
+            "(? IS NULL OR s.rowid < ?) AND "
             "s.rowid=(SELECT newer.rowid FROM snapshots newer WHERE "
             "newer.workspace=s.workspace AND newer.finding_id=s.finding_id "
             "AND newer.revision=s.revision ORDER BY newer.receipt_count DESC, "
             "newer.rowid DESC LIMIT 1) ORDER BY s.rowid DESC LIMIT ?",
-            (workspace, limit),
+            (workspace, before_rowid, before_rowid, limit),
         ).fetchall()
         summaries = []
         for digest, finding_id, revision, package_bytes, verification_json in rows:
