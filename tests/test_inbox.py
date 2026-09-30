@@ -74,6 +74,23 @@ class InboxTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "limit"):
                 inbox.list_candidates("workspace-a", limit=101)
 
+    def test_candidate_pages_use_workspace_local_digest_cursor(self):
+        files = ("candidate-valid", "revision-valid", "failed-run-finding-valid")
+        with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
+            for name in files:
+                inbox.ingest("workspace-a", (FIXTURES / f"valid/{name}.oaff.json").read_bytes())
+            inbox.ingest("workspace-b", (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes())
+            seen = []
+            cursor = None
+            while page := inbox.list_candidates("workspace-a", limit=1, before=cursor):
+                seen.append(page[0]["revision"])
+                cursor = page[-1]["digest"]
+            self.assertEqual(len(seen), 3)
+            self.assertEqual(len(set(seen)), 3)
+            foreign_only = inbox.list_candidates("workspace-a", limit=1)[0]["digest"]
+            with self.assertRaisesRegex(ValueError, "cursor"):
+                inbox.list_candidates("workspace-b", before=foreign_only)
+
     def test_lineage_inspection_keeps_origin_lifecycle_untrusted(self):
         finding_id = "tag:example.org,2026:oaff/finding/retry-42"
         with TemporaryDirectory() as directory, CandidateInbox(

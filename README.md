@@ -75,6 +75,9 @@ receivers must not silently promote an older snapshot over newer receipts.
 `lineage` shows retained revision and claimed lifecycle history for local
 review, without deciding which revision is current or whose withdrawal has
 authority. See the [O5 boundary](docs/LIFECYCLE-RECONCILIATION.md).
+For a long inbox, call `list_candidates(workspace, limit=20, before=last_digest)`
+repeatedly, using the previous page's last `digest` as the next cursor. A
+cursor from another workspace is rejected.
 
 ```python
 from oaff import CandidateInbox
