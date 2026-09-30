@@ -17,11 +17,12 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Lifecycle reconciliation boundary](docs/LIFECYCLE-RECONCILIATION.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 
-The OAFF v0.1 format contract and independent verifier have merged. Proofpress export
-merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210); hosted
-candidate intake and local proposal are under review in
+The OAFF v0.1 format contract and independent verifier have merged. Proofpress
+export merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210),
+and hosted candidate intake with a receiver-local proposal bridge merged in
 [PR #212](https://github.com/chenmingtang830/proofpress/pull/212). Owner UI,
-lifecycle sync, and independent interoperability validation remain in the
+live deployment verification, lifecycle sync, and independent interoperability
+validation remain in the
 [strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e).
 
 The JSON Schema validates shape. The fixture check also validates package
@@ -59,6 +60,17 @@ public name; new files use `.aff`, while existing `.oaff.json` files remain
 readable. The contents are still JSON. The `oaff_version` key, the Python
 `oaff` import package, and the v0.1 digest contract remain unchanged. See the
 [naming and compatibility decision](docs/AFF-NAMING-COMPATIBILITY.md).
+
+## Storage and discovery
+
+An `.aff` file can be stored in Git, object storage, or a database. The format
+does not require a Proofpress account or service. This repository's
+`CandidateInbox` stores received foreign packages in SQLite for local review;
+Proofpress offers a separate governed receiver. AFF v0.1 does not define a
+registry, search API, subscription mechanism, or network transport. A producer
+and receiver must agree how to find and transfer packages. The
+[strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e)
+tracks a Finding library and discovery MVP as product work beyond file interchange.
 
 ## Candidate inbox (O4 foundation)
 
