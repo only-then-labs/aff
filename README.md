@@ -15,6 +15,7 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
 - [KIP/OKF interoperability mapping and loss report](docs/KIP-OKF-INTEROP.md)
 - [Lifecycle reconciliation boundary](docs/LIFECYCLE-RECONCILIATION.md)
+- [Use and outcome record RFC](docs/O6-USE-OUTCOME-RFC.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress export
