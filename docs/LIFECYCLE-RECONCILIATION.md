@@ -18,9 +18,9 @@ breaks ties between equal-sized comparable receipt sets but is not a causal or
 trusted lifecycle order.
 
 This is a display and reconciliation input, never a permission to rely. For
-example, the [withdrawn fixture](../fixtures/valid/withdrawn-valid.oaff.json)
+example, the [withdrawn fixture](../fixtures/valid/withdrawn-valid.aff)
 claims a withdrawal of the first revision, while the
-[revision fixture](../fixtures/valid/revision-valid.oaff.json) claims a later
+[revision fixture](../fixtures/valid/revision-valid.aff) claims a later
 revision. A receiver can show both without treating the later revision as
 locally adopted or the foreign withdrawal as authenticated.
 

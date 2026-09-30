@@ -101,7 +101,7 @@ def main() -> None:
         count += 1
     listed = {
         str(path.relative_to(ROOT / "fixtures"))
-        for path in (ROOT / "fixtures").rglob("*.oaff.json")
+        for path in (ROOT / "fixtures").rglob("*.aff")
     }
     expected_files = set(MANIFEST["valid"]) | set(MANIFEST["invalid"])
     if listed != expected_files:

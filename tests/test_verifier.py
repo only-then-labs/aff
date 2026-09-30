@@ -25,6 +25,23 @@ def seal(document: dict) -> bytes:
 
 
 class VerifierTest(unittest.TestCase):
+    def test_new_and_legacy_extensions_have_identical_verification(self):
+        package = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
+        with TemporaryDirectory() as directory:
+            preferred = Path(directory) / "finding.aff"
+            legacy = Path(directory) / "finding.oaff.json"
+            preferred.write_bytes(package)
+            legacy.write_bytes(package)
+            reports = verify_files([preferred, legacy])
+        self.assertEqual(len(reports), 2)
+        for report in reports:
+            self.assertEqual(report["integrity"], "pass")
+            self.assertNotEqual(report["status"], "invalid")
+        self.assertEqual(
+            [{key: value for key, value in report.items() if key != "path"} for report in reports[:1]],
+            [{key: value for key, value in report.items() if key != "path"} for report in reports[1:]],
+        )
+
     def test_all_contract_fixtures(self):
         for relative in MANIFEST["valid"]:
             with self.subTest(relative=relative):
@@ -39,7 +56,7 @@ class VerifierTest(unittest.TestCase):
                 self.assertEqual(report["diagnostics"][0]["code"], expected)
 
     def test_caller_supplied_evidence_bytes(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
         source = b"synthetic run 42: retry with the same key"
         passing = verify_bytes(candidate, {"run-42": source})
         self.assertEqual(passing["status"], "valid")
@@ -51,7 +68,7 @@ class VerifierTest(unittest.TestCase):
         for outcome in ("successful", "failed"):
             with self.subTest(outcome=outcome):
                 package = (
-                    FIXTURES / f"valid/{outcome}-run-finding-valid.oaff.json"
+                    FIXTURES / f"valid/{outcome}-run-finding-valid.aff"
                 ).read_bytes()
                 source = (FIXTURES / f"sources/{outcome}-run.txt").read_bytes()
                 report = verify_bytes(package, {f"run-{outcome}-1": source})
@@ -61,7 +78,7 @@ class VerifierTest(unittest.TestCase):
                 self.assertEqual(report["local_authority"], "not_evaluated")
 
     def test_receipts_do_not_inherit_authority(self):
-        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.aff").read_bytes()
         report = verify_bytes(admitted)
         self.assertEqual(report["receipt_counts"]["adoption_decision"], 1)
         self.assertEqual(report["local_authority"], "not_evaluated")
@@ -69,24 +86,24 @@ class VerifierTest(unittest.TestCase):
 
     def test_same_revision_with_new_receipts_is_valid(self):
         paths = [
-            FIXTURES / "valid/candidate-valid.oaff.json",
-            FIXTURES / "valid/admitted-valid.oaff.json",
-            FIXTURES / "valid/withdrawn-valid.oaff.json",
+            FIXTURES / "valid/candidate-valid.aff",
+            FIXTURES / "valid/admitted-valid.aff",
+            FIXTURES / "valid/withdrawn-valid.aff",
         ]
         reports = verify_files(paths)
         self.assertTrue(all(report["status"] != "invalid" for report in reports))
 
     def test_conflicting_revision_is_rejected_even_with_matching_digest(self):
         original = json.loads(
-            (FIXTURES / "valid/candidate-valid.oaff.json").read_text()
+            (FIXTURES / "valid/candidate-valid.aff").read_text()
         )
         changed = copy.deepcopy(original)
         changed["finding"]["statement"] = "Different statement under the same revision URI."
         with TemporaryDirectory() as directory:
-            path = Path(directory) / "conflict.oaff.json"
+            path = Path(directory) / "conflict.aff"
             path.write_bytes(seal(changed))
             reports = verify_files(
-                [FIXTURES / "valid/candidate-valid.oaff.json", path]
+                [FIXTURES / "valid/candidate-valid.aff", path]
             )
         self.assertTrue(all(report["status"] == "invalid" for report in reports))
         self.assertTrue(
@@ -97,14 +114,14 @@ class VerifierTest(unittest.TestCase):
         )
 
     def test_unresolved_link_is_a_limit_and_resolved_revision_is_valid(self):
-        revision = FIXTURES / "valid/revision-valid.oaff.json"
+        revision = FIXTURES / "valid/revision-valid.aff"
         alone = verify_files([revision])[0]
         self.assertEqual(alone["status"], "valid_with_limits")
         self.assertIn(
             "unresolved_link", [item["code"] for item in alone["diagnostics"]]
         )
         together = verify_files(
-            [FIXTURES / "valid/candidate-valid.oaff.json", revision]
+            [FIXTURES / "valid/candidate-valid.aff", revision]
         )
         self.assertTrue(
             all(
@@ -114,8 +131,8 @@ class VerifierTest(unittest.TestCase):
         )
 
     def test_cli_exit_codes_and_machine_output(self):
-        candidate = FIXTURES / "valid/candidate-valid.oaff.json"
-        tampered = FIXTURES / "invalid/tampered-statement.oaff.json"
+        candidate = FIXTURES / "valid/candidate-valid.aff"
+        tampered = FIXTURES / "invalid/tampered-statement.aff"
         good = subprocess.run(
             [sys.executable, "-m", "oaff.cli", "verify", str(candidate), "--json"],
             capture_output=True,

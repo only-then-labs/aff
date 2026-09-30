@@ -41,10 +41,10 @@ The Python package adds a standalone CLI and library. It never fetches a
 source URI, authenticates a named receipt issuer, or grants local adoption.
 
 ```sh
-aff verify fixtures/valid/candidate-valid.oaff.json
-aff verify fixtures/valid/candidate-valid.oaff.json --json
-aff verify finding.oaff.json --evidence run-42=/path/to/source-bytes
-aff verify first.oaff.json later.oaff.json
+aff verify fixtures/valid/candidate-valid.aff
+aff verify fixtures/valid/candidate-valid.aff --json
+aff verify finding.aff --evidence run-42=/path/to/source-bytes
+aff verify first.aff later.aff
 ```
 
 The command exits **0** for a valid package, including
@@ -55,7 +55,8 @@ checks, receipt counts, and local authority separate. Passing the verifier
 never means the Finding is true, authenticated, or approved for reuse.
 
 `oaff verify` remains an equivalent command for existing scripts. AFF is the
-public name; existing `.oaff.json` files, the `oaff_version` key, the Python
+public name; new files use `.aff`, while existing `.oaff.json` files remain
+readable. The contents are still JSON. The `oaff_version` key, the Python
 `oaff` import package, and the v0.1 digest contract remain unchanged. See the
 [naming and compatibility decision](docs/AFF-NAMING-COMPATIBILITY.md).
 
@@ -83,7 +84,7 @@ cursor from another workspace is rejected.
 from oaff import CandidateInbox
 
 with CandidateInbox("oaff-inbox.db") as inbox:
-    result = inbox.ingest("authenticated-workspace-id", open("finding.oaff.json", "rb").read())
+    result = inbox.ingest("authenticated-workspace-id", open("finding.aff", "rb").read())
     print(result["state"], result["verification"]["status"])
 ```
 

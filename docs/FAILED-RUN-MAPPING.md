@@ -1,8 +1,8 @@
 # Failed run to Finding: v0.1 coverage and loss report
 
 Status: synthetic contract examples, not a production export. The paired
-[successful](../fixtures/valid/successful-run-finding-valid.oaff.json) and
-[failed](../fixtures/valid/failed-run-finding-valid.oaff.json) examples use the
+[successful](../fixtures/valid/successful-run-finding-valid.aff) and
+[failed](../fixtures/valid/failed-run-finding-valid.aff) examples use the
 same OAFF v0.1 schema. Each Finding states one bounded conclusion; the source
 run is evidence. A failed run alone does not automatically create a Finding.
 

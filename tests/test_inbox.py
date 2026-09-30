@@ -23,8 +23,8 @@ def seal(document: dict) -> bytes:
 
 class InboxTests(unittest.TestCase):
     def test_idempotent_receipt_snapshots_and_workspace_partition(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
-        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.aff").read_bytes()
         with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
             first = inbox.ingest("workspace-a", candidate)
             self.assertEqual(first["state"], "candidate")
@@ -38,7 +38,7 @@ class InboxTests(unittest.TestCase):
             self.assertEqual(inbox.ingest("workspace-b", admitted)["state"], "candidate")
 
     def test_conflicting_identity_is_quarantined_even_with_new_valid_digest(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
         changed = copy.deepcopy(json.loads(candidate))
         changed["finding"]["statement"] = "Different claim under the same revision."
         conflict = seal(changed)
@@ -51,8 +51,8 @@ class InboxTests(unittest.TestCase):
                              {"revisions": 1, "snapshots": 1, "quarantined": 1})
 
     def test_inspection_uses_latest_snapshot_and_never_crosses_workspace(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
-        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.aff").read_bytes()
         with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
             original = inbox.ingest("workspace-a", candidate)
             latest = inbox.ingest("workspace-a", admitted)
@@ -78,8 +78,8 @@ class InboxTests(unittest.TestCase):
         files = ("candidate-valid", "revision-valid", "failed-run-finding-valid")
         with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
             for name in files:
-                inbox.ingest("workspace-a", (FIXTURES / f"valid/{name}.oaff.json").read_bytes())
-            inbox.ingest("workspace-b", (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes())
+                inbox.ingest("workspace-a", (FIXTURES / f"valid/{name}.aff").read_bytes())
+            inbox.ingest("workspace-b", (FIXTURES / "valid/candidate-valid.aff").read_bytes())
             seen = []
             cursor = None
             while page := inbox.list_candidates("workspace-a", limit=1, before=cursor):
@@ -98,8 +98,8 @@ class InboxTests(unittest.TestCase):
         ) as inbox:
             for name in ("candidate-valid", "admitted-valid", "withdrawn-valid",
                          "revision-valid"):
-                inbox.ingest("workspace-a", (FIXTURES / f"valid/{name}.oaff.json").read_bytes())
-            inbox.ingest("workspace-b", (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes())
+                inbox.ingest("workspace-a", (FIXTURES / f"valid/{name}.aff").read_bytes())
+            inbox.ingest("workspace-b", (FIXTURES / "valid/candidate-valid.aff").read_bytes())
             lineage = inbox.lineage("workspace-a", finding_id)
             self.assertEqual(lineage["total_revisions"], 2)
             self.assertEqual(lineage["current_revision"], "undetermined")
@@ -117,9 +117,9 @@ class InboxTests(unittest.TestCase):
             self.assertIsNone(inbox.lineage("workspace-b", "tag:example.org,2026:missing"))
 
     def test_out_of_order_snapshot_cannot_hide_withdrawal(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
-        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
-        withdrawn = (FIXTURES / "valid/withdrawn-valid.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.aff").read_bytes()
+        withdrawn = (FIXTURES / "valid/withdrawn-valid.aff").read_bytes()
         with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
             latest = inbox.ingest("workspace-a", withdrawn)
             inbox.ingest("workspace-a", candidate)
@@ -133,7 +133,7 @@ class InboxTests(unittest.TestCase):
                 "snapshot_count"], 3)
 
     def test_divergent_or_mutated_receipt_history_is_quarantined(self):
-        admitted = json.loads((FIXTURES / "valid/admitted-valid.oaff.json").read_bytes())
+        admitted = json.loads((FIXTURES / "valid/admitted-valid.aff").read_bytes())
         changed = copy.deepcopy(admitted)
         changed["receipts"][0]["result"] = "supported"
         branch = copy.deepcopy(admitted)
@@ -154,7 +154,7 @@ class InboxTests(unittest.TestCase):
             self.assertEqual(inbox.counts("workspace-a")["snapshots"], 1)
 
     def test_existing_inbox_receipt_counts_are_migrated(self):
-        admitted = (FIXTURES / "valid/admitted-valid.oaff.json").read_bytes()
+        admitted = (FIXTURES / "valid/admitted-valid.aff").read_bytes()
         package = json.loads(admitted)
         with TemporaryDirectory() as directory:
             path = Path(directory) / "old.db"
@@ -186,8 +186,8 @@ class InboxTests(unittest.TestCase):
                     "workspace-a", package["integrity"]["digest"])["latest_snapshot"])
 
     def test_tampered_and_mismatched_evidence_are_quarantined(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
-        tampered = (FIXTURES / "invalid/tampered-statement.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
+        tampered = (FIXTURES / "invalid/tampered-statement.aff").read_bytes()
         with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
             self.assertEqual(inbox.ingest("workspace-a", tampered)["reason"], "invalid_binding")
             self.assertEqual(inbox.ingest("workspace-a", candidate,
@@ -196,7 +196,7 @@ class InboxTests(unittest.TestCase):
             self.assertEqual(inbox.counts("workspace-a")["quarantined"], 2)
 
     def test_empty_workspace_is_rejected(self):
-        candidate = (FIXTURES / "valid/candidate-valid.oaff.json").read_bytes()
+        candidate = (FIXTURES / "valid/candidate-valid.aff").read_bytes()
         with TemporaryDirectory() as directory, CandidateInbox(Path(directory) / "inbox.db") as inbox:
             with self.assertRaisesRegex(ValueError, "workspace key"):
                 inbox.ingest("", candidate)
