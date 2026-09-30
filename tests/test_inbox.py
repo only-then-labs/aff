@@ -66,6 +66,9 @@ class InboxTests(unittest.TestCase):
             self.assertIsNone(inbox.get_candidate("workspace-b", latest["digest"]))
             selected = inbox.get_candidate("workspace-a", latest["digest"])
             self.assertEqual(selected["package"]["receipts"][-1]["result"], "admitted")
+            self.assertTrue(selected["latest_snapshot"])
+            self.assertFalse(inbox.get_candidate("workspace-a", original["digest"])[
+                "latest_snapshot"])
             self.assertEqual(selected["local_authority"], "none")
             with self.assertRaisesRegex(ValueError, "limit"):
                 inbox.list_candidates("workspace-a", limit=101)
