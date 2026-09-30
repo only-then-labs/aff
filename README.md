@@ -16,6 +16,7 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [KIP/OKF interoperability mapping and loss report](docs/KIP-OKF-INTEROP.md)
 - [Lifecycle reconciliation boundary](docs/LIFECYCLE-RECONCILIATION.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
+- [Git collection guide](docs/GIT-COLLECTION.md) and [browsable example](examples/git-collection/aff/index.md)
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress
 export merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210),
@@ -61,16 +62,33 @@ readable. The contents are still JSON. The `oaff_version` key, the Python
 `oaff` import package, and the v0.1 digest contract remain unchanged. See the
 [naming and compatibility decision](docs/AFF-NAMING-COMPATIBILITY.md).
 
-## Storage and discovery
+## Default Git collection
 
-An `.aff` file can be stored in Git, object storage, or a database. The format
-does not require a Proofpress account or service. This repository's
-`CandidateInbox` stores received foreign packages in SQLite for local review;
-Proofpress offers a separate governed receiver. AFF v0.1 does not define a
-registry, search API, subscription mechanism, or network transport. A producer
-and receiver must agree how to find and transfer packages. The
-[strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e)
-tracks a Finding library and discovery MVP as product work beyond file interchange.
+The default low-friction publisher is an `aff/` directory in an ordinary Git
+repository. Original packages live under `aff/findings/`; `aff/index.md` is a
+generated, reviewable list of the packages. Keep existing Markdown post-mortems
+as source material; a Finding is a separate, bounded conclusion.
+
+```sh
+aff collection init
+aff collection add path/to/finding.aff
+aff collection check
+git add aff/
+```
+
+`aff collection index` regenerates the index after packages are added by other
+tools; `aff collection check` verifies package integrity and rejects a stale
+index. Both read `.aff` and legacy `.oaff.json` files inside `aff/findings/`.
+The index is a discovery view: it never selects the current revision, verifies
+unavailable evidence, authenticates receipt issuers, or grants local authority.
+See the [collection guide](docs/GIT-COLLECTION.md) for layout and limits.
+
+The wire format does not require Git or Proofpress. An `.aff` file can also live
+in object storage or a database. This repository's `CandidateInbox` stores
+received foreign packages in SQLite for local review; Proofpress offers a
+separate governed receiver. AFF v0.1 does not define a registry, subscription
+mechanism, or network transport. A producer and receiver must agree how to find
+and transfer packages.
 
 ## Candidate inbox (O4 foundation)
 
