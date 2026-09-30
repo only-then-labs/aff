@@ -5,6 +5,10 @@ Proofpress account. The current integration is a Python CLI plus ordinary
 repository files; it is not an automatic agent plugin. Python 3.10+ and Git
 are sufficient for this path.
 
+To see a synthetic successful and failed run before using your own data, run
+`aff demo` after installation. It creates an `aff-demo/` project with source
+notes, candidate `.aff` files, an index, `AGENTS.md`, and a starter policy.
+
 ## 1. Install the CLI
 
 From a shell with Python 3.10+:

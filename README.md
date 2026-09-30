@@ -16,6 +16,21 @@ not enforce local approval or automate withdrawal. See the
 
 This repository contains the **v0.1 draft**, not a ratified standard.
 
+## Try it in two minutes
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install 'git+https://github.com/only-then-labs/aff.git'
+.venv/bin/aff demo
+cd aff-demo
+../.venv/bin/aff collection check
+```
+
+Open `aff/index.md`, then the paired synthetic successful and failed run
+Findings. This demo creates candidates and source notes; it does not admit
+them. See the [collaborator guide](docs/SHARE.md) for a real-repository trial
+and the separate Proofpress governance path.
+
 **New here?** Follow [Getting started](docs/GETTING-STARTED.md) to install
 `aff`, run `aff init` in an existing repository, capture one Finding from a
 note, and verify it before adding it to Git. The generated `AGENTS.md` and
@@ -33,6 +48,7 @@ Reference material:
 - [Git collection guide](docs/GIT-COLLECTION.md) and [browsable example](examples/git-collection/aff/index.md)
 - [First outside trial guide](docs/OUTSIDE-TRIAL.md) for a team's own notes and an independent reader
 - [Governance model](docs/GOVERNANCE.md) for proposal, checks, local decisions, revisions, and withdrawal
+- [Open-core boundary](docs/ARCHITECTURE.md) between AFF and Proofpress
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress
 export merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210),
