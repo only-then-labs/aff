@@ -13,11 +13,14 @@ This repository contains the **v0.1 draft**, not a ratified standard:
 - [JSON Schema](schema/oaff-0.1.schema.json)
 - [Positive and negative fixtures](fixtures/README.md)
 - [Proofpress field mapping](docs/PROOFPRESS-MAPPING.md)
+- [KIP/OKF interoperability mapping and loss report](docs/KIP-OKF-INTEROP.md)
 - [Conformance runner](docs/CONFORMANCE.md) and [contribution process](CONTRIBUTING.md)
 
 The OAFF v0.1 format contract and independent verifier have merged. Proofpress export
 merged in [PR #210](https://github.com/chenmingtang830/proofpress/pull/210); hosted
-import, lifecycle sync, and conformance release remain in the
+candidate intake and local proposal are under review in
+[PR #212](https://github.com/chenmingtang830/proofpress/pull/212). Owner UI,
+lifecycle sync, and independent interoperability validation remain in the
 [strategy roadmap](https://app.notion.com/p/3ea1bd5e74fc81ef8ddcfef35d3d605e).
 
 The JSON Schema validates shape. The fixture check also validates package
