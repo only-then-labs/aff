@@ -10,6 +10,7 @@ contract, originally called Open Agent Findings Format.
 | Surface | Current behavior | Compatibility rule |
 | --- | --- | --- |
 | Public name | AFF — Agent Findings Format | Use AFF in product-facing prose. Do not reinterpret existing OAFF files. |
+| Public repository | `only-then-labs/aff` | Renamed from `only-then-labs/oaff` on 30 Sep 2026. Use the new URL for installation and new links; existing GitHub links redirect. |
 | JSON key and version | `oaff_version: "0.1.0"` | Required unchanged for v0.1. Readers reject unknown versions under the current spec. |
 | Filename convention | `.aff` for new packages | Existing `.oaff.json` files remain valid and readable. A filename alone never determines validity. |
 | Python distribution/import | `oaff` | Keep the published distribution and `import oaff`; an `aff` distribution name is not reserved or promised. |
@@ -34,6 +35,8 @@ silently treat `aff_version` as `oaff_version`, rewrite package bytes, or infer
 authority from a new label. Existing v0.1 packages remain readable by v0.1
 implementations.
 
-The repository URL is also stable for now; renaming it would create redirects
-and integration work without changing the format. The AFF name should be tested
-through real producers and receivers before any repository or package migration.
+The repository rename changed the discovery and installation URL, not package
+bytes or the v0.1 wire contract. The v0.1 schema's historical `$id` still uses
+the old repository URL, which GitHub redirects; changing that schema identity
+would be a separate compatibility review. The Python package name and wire
+identifier remain `oaff` until a separately versioned migration is justified.

@@ -11,6 +11,10 @@ requires-python = ">=3.10"
 license = "Apache-2.0"
 dependencies = ["jsonschema>=4.23,<5", "rfc8785>=0.1.4,<1"]
 
+[project.urls]
+Repository = "https://github.com/only-then-labs/aff"
+Documentation = "https://github.com/only-then-labs/aff/blob/main/docs/GETTING-STARTED.md"
+
 [project.scripts]
 aff = "oaff.cli:main"
 oaff = "oaff.cli:main"
