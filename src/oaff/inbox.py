@@ -184,11 +184,18 @@ class CandidateInbox:
         if not isinstance(package_digest, str) or not package_digest:
             raise ValueError("package digest is required")
         row = self.connection.execute(
-            "SELECT package_bytes,verification_json FROM snapshots "
+            "SELECT rowid,finding_id,revision,package_bytes,verification_json FROM snapshots "
             "WHERE workspace=? AND package_digest=?",
             (workspace, package_digest),
         ).fetchone()
         if row is None:
             return None
-        return {"digest": package_digest, "package": json.loads(row[0]),
-                "verification": json.loads(row[1]), "local_authority": "none"}
+        latest_rowid = self.connection.execute(
+            "SELECT max(rowid) FROM snapshots WHERE workspace=? AND "
+            "finding_id=? AND revision=?",
+            (workspace, row[1], row[2]),
+        ).fetchone()[0]
+        return {"digest": package_digest, "package": json.loads(row[3]),
+                "verification": json.loads(row[4]),
+                "latest_snapshot": row[0] == latest_rowid,
+                "local_authority": "none"}
