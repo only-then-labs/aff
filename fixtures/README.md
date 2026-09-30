@@ -12,6 +12,12 @@ statements are **illustrative, not authenticated or factually verified**.
 | `revision-valid.oaff.json` | New revision linked to the earlier revision of the same Finding. |
 | `conflicting-evidence-valid.oaff.json` | Two opposing excerpts; support remains indeterminate. |
 | `unavailable-evidence-valid.oaff.json` | Source cannot be inspected; package remains structurally valid. |
+| `successful-run-finding-valid.oaff.json` | A successful run supports a bounded positive observation. |
+| `failed-run-finding-valid.oaff.json` | A failed run supports a bounded negative observation; failure does not invalidate the package. |
+
+The two run examples use tiny synthetic bytes in `sources/`. A receiver can
+check each source digest locally with `oaff verify PACKAGE --evidence ID=FILE`.
+Neither package contains a full run trace or asserts that the example is true.
 
 `invalid/` exercises schema and binding failures. Expected outcomes are in
 `manifest.json`. Passing JSON Schema alone is insufficient for digest and

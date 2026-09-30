@@ -25,7 +25,7 @@ case. In CI, pin both the OAFF repository commit and the tested implementation
 version. A clean-room implementation should report its version and the
 language/runtime in its own CI log.
 
-The v0.1 corpus tests six valid and seven invalid packages. It does not yet
+The v0.1 corpus tests eight valid and seven invalid packages. It does not yet
 test network transfer, signatures, authenticated lifecycle updates,
 cross-workspace adoption, or every Unicode/JCS edge case. Add focused
 fixtures and update the manifest when a normative invariant is clarified.

@@ -150,6 +150,59 @@ unavailable["finding"]["revision"] = "tag:example.org,2026:oaff/revision/unavail
 unavailable["finding"]["evidence"][0]["availability"] = "unavailable"
 write("valid/unavailable-evidence-valid.oaff.json", unavailable)
 
+# A run is evidence; the reusable conclusion is the Finding. These two
+# packages deliberately use the same v0.1 shape for positive and negative
+# observations. The tiny source files allow a verifier to check exact bytes.
+run_cases = [
+    (
+        "successful",
+        b"synthetic run success-1: timeout; retry with key K; original resource id returned\n",
+        "After an ambiguous timeout, retrying create with the same idempotency key returned the original resource in this synthetic API v2 run.",
+        "A create call timed out ambiguously and the retry used the same key.",
+        ["API v2", "The retry used the original idempotency key."],
+        ["The initial create outcome was known before retry."],
+    ),
+    (
+        "failed",
+        b"synthetic run failure-1: timeout; retry with new key K2; second resource id returned\n",
+        "After an ambiguous timeout, retrying create with a new idempotency key created a second resource in this synthetic API v2 run.",
+        "A create call timed out ambiguously and the retry changed the key.",
+        ["API v2", "The retry used a new idempotency key."],
+        ["The retry used the original idempotency key."],
+    ),
+]
+for outcome, source_bytes, statement, description, conditions, exclusions in run_cases:
+    source_path = ROOT / "sources" / f"{outcome}-run.txt"
+    source_path.parent.mkdir(parents=True, exist_ok=True)
+    source_path.write_bytes(source_bytes)
+    package = copy.deepcopy(base)
+    package["finding"].update(
+        {
+            "id": f"tag:example.org,2026:oaff/finding/{outcome}-run-1",
+            "revision": f"tag:example.org,2026:oaff/revision/{outcome}-run-1-v1",
+            "statement": statement,
+            "applicability": {
+                "description": description,
+                "conditions": conditions,
+                "exclusions": exclusions,
+            },
+            "evidence": [
+                {
+                    "id": f"run-{outcome}-1",
+                    "source_uri": f"https://example.org/synthetic/runs/{outcome}-1",
+                    "content_digest": {
+                        "algorithm": "sha-256",
+                        "value": hashlib.sha256(source_bytes).hexdigest(),
+                    },
+                    "availability": "restricted",
+                    "locator": "result summary",
+                    "excerpt": source_bytes.decode("utf-8").strip(),
+                }
+            ],
+        }
+    )
+    write(f"valid/{outcome}-run-finding-valid.oaff.json", package)
+
 missing_scope = copy.deepcopy(base)
 del missing_scope["finding"]["applicability"]
 write("invalid/missing-applicability.oaff.json", missing_scope)
@@ -178,4 +231,4 @@ write("invalid/self-revision.oaff.json", self_revision)
 (ROOT / "invalid/duplicate-key.oaff.json").write_text(
     '{"oaff_version":"0.1.0","oaff_version":"0.1.0"}\n'
 )
-print("Generated 13 synthetic fixture files")
+print("Generated 15 synthetic fixture files and two synthetic source files")
