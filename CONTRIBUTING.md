@@ -1,6 +1,6 @@
-# Contributing to OAFF
+# Contributing to AFF
 
-OAFF v0.1 is a draft. Open an issue for a concrete interoperability problem,
+AFF's OAFF v0.1 wire contract is a draft. Open an issue for a concrete interoperability problem,
 preferably with a minimal package or fixture that contains no secrets or
 private source bytes. State which fields another implementation could not
 produce or interpret, the expected behavior, and the trust boundary involved.
